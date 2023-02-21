@@ -45,5 +45,5 @@ jobs:
           username: 'root'   #ssh user name
           server: '118.195.232.109' #引用之前创建好的secret
           ssh_private_key: ${{ secrets.SSH_KEY }} #引用之前创建好的secret
-          local_path: './docs/.vuepress/dist'  # 对应我们项目build的文件夹路径
+          local_path: './src/.vuepress/dist'  # 对应我们项目build的文件夹路径
           remote_path: '/www/wwwroot/notes'
