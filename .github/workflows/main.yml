@@ -39,13 +39,11 @@ jobs:
 
       # 查看 workflow 的文档来获取更多信息
       # @see https://github.com/crazy-max/ghaction-github-pages
-      - name: Deploy to GitHub Pages
-        uses: crazy-max/ghaction-github-pages@v2
+      - name: Deploy to to server
+        uses: wlixcc/SFTP-Deploy-Action@v1.0 
         with:
-          # 部署到 gh-pages 分支
-          target_branch: gh-pages
-          # 部署目录为 VuePress 的默认输出目录
-          build_dir: docs/.vuepress/dist
-        env:
-          # @see https://docs.github.com/cn/actions/reference/authentication-in-a-workflow#about-the-github_token-secret
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          username: 'root'   #ssh user name
+          server: '118.195.232.109' #引用之前创建好的secret
+          ssh_private_key: ${{ secrets.SSH_KEY }} #引用之前创建好的secret
+          local_path: './docs/.vuepress/dist'  # 对应我们项目build的文件夹路径
+          remote_path: '/www/wwwroot/notes'
