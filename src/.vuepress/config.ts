@@ -11,8 +11,8 @@ export default defineUserConfig({
         // },
         "/": {
             lang: "zh-CN",
-            title: "赵恒盛的博客",
-            description: "xxx",
+            title: "赵恒盛的笔记",
+            description: "xxxxxxxxxx",
         },
     },
 

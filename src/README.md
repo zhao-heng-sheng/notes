@@ -9,6 +9,7 @@ heroText: 你博客的名称
 heroFullScreen: false
 tagline: 你可以在这里放置你的口号与标语
 bgImage: https://zhaohs.cn/zb_users/theme/acgMora/style/img/thumb-1920-739436.png
+sidebarSorter: ["readme", "order","date-desc", "title", "filename"]
 # projects:
 #     - icon: project
 #       name: 项目名称
@@ -40,5 +41,5 @@ bgImage: https://zhaohs.cn/zb_users/theme/acgMora/style/img/thumb-1920-739436.pn
 #       desc: 自定义详细介绍
 #       link: https://你的自定义链接
 
-footer: <a href="https://beian.miit.gov.cn/" target="_blank">豫ICP备18021175号</a>
+# footer: <a href="https://beian.miit.gov.cn/" target="_blank">豫ICP备18021175号</a>
 ---

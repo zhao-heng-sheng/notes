@@ -1,8 +1,10 @@
 ---
-icon: edit
-date: 2023-02-02
+sidebarSorter: ["readme", "order", "date-desc", "title", "filename"]
+icon: javascript
 ---
 
-<!-- more -->
+# 关于 JavaScript
 
-# js
+千里之行，始于足下
+
+## call

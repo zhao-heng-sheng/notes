@@ -1,32 +1,36 @@
 import { hopeTheme } from "vuepress-theme-hope"
-import { enNavbar, zhNavbar } from "./navbar/index.js"
-import { enSidebar, zhSidebar } from "./sidebar/index.js"
+import { zhNavbar } from "./navbar/index.js"
+import { zhSidebar } from "./sidebar/index.js"
 
 export default hopeTheme({
-    hostname: "https://mister-hope.github.io",
-    repoDisplay: false,
+    hostname: "http://note.zhaohs.cn/",
     author: {
         name: "赵恒盛",
         url: "https://mrhope.site",
     },
-
+    themeColor: {
+        blue: "#2196f3",
+        red: "#f26d6d",
+        green: "#3eaf7c",
+        orange: "#fb9b5f",
+    },
     iconAssets: "iconfont",
 
     logo: "/logo.svg",
 
-    repo: "vuepress-theme-hope/vuepress-theme-hope",
-
-    docsDir: "docs",
-
+    repo: "zhao-heng-sheng/notes",
+    repoDisplay: true,
+    docsDir: "src",
+    docsBranch: "master",
     blog: {
         timeline: "逝者如斯夫，不舍昼夜。",
         medias: {
-            QQ: "https://example.com",
-            Wechat: "https://example.com",
-            Email: "https://example.com",
-            BiliBili: "https://space.bilibili.com/173522980?spm_id_from=333.976.0.0",
-            GitHub: "https://example.com",
-            Rss: "https://example.com",
+            // QQ: "https://example.com",
+            // Wechat: "zhs13343",
+            // Email: "console.log@163.com",
+            GitHub: "https://github.com/zhao-heng-sheng",
+            // BiliBili: "https://space.bilibili.com/173522980?spm_id_from=333.976.0.0",
+            // Rss: "https://example.com",
             // Baidu: "https://example.com",
             // Bitbucket: "https://example.com",
             // Dingding: "https://example.com",
@@ -62,29 +66,28 @@ export default hopeTheme({
         "/": {
             // navbar
             navbar: zhNavbar,
-
             // sidebar
             sidebar: zhSidebar,
-
-            footer: "",
-
+            navbarLayout: { start: ["Brand","Search"], center: [], end: ["Links","Language",  "Outlook", "Repo",] },
+            // footer: '<a href="https://beian.miit.gov.cn/" target="_blank">豫ICP备18021175号</a>',
+            copyright: '<a href="https://beian.miit.gov.cn/" target="_blank">豫ICP备18021175号</a> | Copyright © 2023 赵恒盛',
             displayFooter: true,
 
             blog: {
-                description: "xxxx",
+                description: "xxxxxxxxxx",
                 intro: "/intro.html",
             },
 
             // page meta
-            // metaLocales: {
-            //     editLink: "在 GitHub 上编辑此页",
-            // },
+            metaLocales: {
+                editLink: "在 GitHub 上编辑此页",
+            },
         },
     },
 
     encrypt: {
         config: {
-            "/demo/encrypt.html": ["1234"],
+            // "/demo/encrypt.html": ["1234"],
         },
     },
 
