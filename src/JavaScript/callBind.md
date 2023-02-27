@@ -1,12 +1,19 @@
+---
+category:
+    - JavaScript
+tag:
+    - call
+    - bind
+---
 # call和bind的实现
 
-## this
+## this指向
 
 在实现call和bind之前，要明确一下this的指向问题。this指向取决于函数的调用方式，一般情况下有四种调用场景。
-1. 在new中调用，this绑定的是新创建的对象
-2. 通过call/apply/bind调用，this绑定的是指定对象
-3. 在上下文对象中调用，this绑定的是上下文对象（也就是常说的 谁.fn()，谁就是fn执行时this指向的对象）
-4. 直接调用，this严格模式下是undefined，非严格模式下绑定window
+1. 直接调用，this严格模式下是undefined，非严格模式下绑定window
+2. 被一个引用类型调用，this绑定的就是所引用的对象（比如：obj.fn()指向obj、arr\[0]()指向arr）
+3. 通过call/apply/bind调用，this绑定的是指定对象
+4. 在new中调用，this绑定的是新创建的对象
 
 箭头函数是个例外，他是根据作用域来决定this指向的，而且无法被修改。
 
@@ -14,9 +21,15 @@
 
 call的作用是临时改变this的指向并执行函数
 
-所以利用上述this的第3种场景，**让函数在指定对象的上下文中被调用**。这样this就会指向指定的对象，从而就实现了call
+所以可以利用上述this的第2种场景
 
-那么怎么才能**让函数在指定对象的上下文中被调用**呢？把函数存到指定对象里面就可以去调用了。
+1. 把要调用的函数添加到指定对象中
+
+2. 用第2种场景去调用
+
+3. 删除添加的方法
+
+这样this调用时就会指向指定的对象，从而就实现了call
 
 ```js
 //call接受1个指定对象和多个参数
@@ -27,13 +40,13 @@ Function.prototype.myCall = function (context, ...args) {
     if (!(context instanceof Object)) context = new Object(context)
     //创建一个唯一的key，防止覆盖对象里的数据
     let soleKey = Symbol()
-    //把要调用的函数存到指定对象中
+    //把要调用的函数添加到指定对象中
     context[soleKey] = this
     //在指定上下文对象中调用，this指向了context
     let res = context[soleKey](...args)
-    //调用后删除存入的函数
+    //调用后删除存入的方法
     delete context[soleKey]
-    //返回调用函数的返回值
+    //返回函数的返回值
     return res
 }
 let fun = function (a, b, c) {
@@ -48,7 +61,8 @@ let obj = {
     name: "铛铛",
     age: 18,
 }
-//myCall的上下文对象是fun
+//myCall被fun调用  所以里面的this就是fun
+//和call表现不同的是：myCall调用时obj多了fun方法，我们是在调用后删除的
 fun.myCall(obj, 1, 2, 3)//this {name: '铛铛', age: 18, Symbol(): ƒ}   args 1 2 3
 ```
 
@@ -62,9 +76,26 @@ let res = context[soleKey](...args)
 
 ## bind
 
-说完了call，那么bind怎么去实现呢？
-
 bind的作用是返回一个this永久绑定到指定对象的函数。
 
-那么我们是不是只要返回一个用call改变this之后的函数就可以了？
+那么只要返回一个函数，让函数引用myBind传的this和context，这样调用之后就会形成一个闭包，每次调用都是返回myBind的this去指向最开始的context
+
+还有一个作用是做偏函数使用（也叫柯里化），只要
+
+```js
+Function.prototype.myBind = function (context，...args1) { 
+    return (...args2) => {
+      	// 使用的是箭头函数，this是myBind的this
+        return this.call(context,...args1,...args2)
+    }
+}
+```
+
+bind还有一个作用是做偏函数使用（也叫柯里化）
+
+MDN上是这么说的
+
+![image-20230227220816268](http://os.zhaohs.cn/markdown/202302272208417.png)
+
+这样似乎就完成了bind的作用，但是函数还有一种情况，就是作为构造函数，用new去调用
 
