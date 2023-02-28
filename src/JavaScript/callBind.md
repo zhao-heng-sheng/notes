@@ -78,9 +78,7 @@ let res = context[soleKey](...args)
 
 bind的作用是返回一个this永久绑定到指定对象的函数。
 
-那么只要返回一个函数，让函数引用myBind传的this和context，这样调用之后就会形成一个闭包，每次调用都是返回myBind的this去指向最开始的context
-
-还有一个作用是做偏函数使用（也叫柯里化），只要
+那么只要返回一个函数，让函数引用myBind传的this和context，这样调用之后就会形成一个闭包，每次调用都是返回myBind的this去指向最开始的context，args1也会作为return出去的函数的固定参数，实现偏函数（柯里化）
 
 ```js
 Function.prototype.myBind = function (context，...args1) { 
@@ -89,13 +87,25 @@ Function.prototype.myBind = function (context，...args1) {
         return this.call(context,...args1,...args2)
     }
 }
+
 ```
 
-bind还有一个作用是做偏函数使用（也叫柯里化）
+这样会有两个问题，返回的函数有可能是要去做构造函数去使用的，但是箭头函数不能作为构造函数使用
 
-MDN上是这么说的
+//第一个是箭头函数不能做为构造函数使用
 
-![image-20230227220816268](http://os.zhaohs.cn/markdown/202302272208417.png)
+第二是
 
-这样似乎就完成了bind的作用，但是函数还有一种情况，就是作为构造函数，用new去调用
+其实this是有优先级的
+
+new Fn() > fn.call/apply/bind() > obj.fn() > fn()
+
+如果返回的函数作为构造函数去new实例对象的话，this指向是不会变到new出来的新对象的。
+
+所以需要
+
+1. 把构造函数改为普通函数，myBind的this用一个变量去接传给普通函数
+2. 如果是new调用，让他指向正确的this
+
+
 
