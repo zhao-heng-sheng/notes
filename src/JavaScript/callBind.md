@@ -15,7 +15,9 @@ tag:
 3. 通过call/apply/bind调用，this绑定的是指定对象
 4. 在new中调用，this绑定的是新创建的对象
 
-箭头函数是个例外，他是根据作用域来决定this指向的，而且无法被修改。
+以上这些指向只是根据常用场景来说的，this指向的原理可以看：[JavaScript深入之从ECMAScript规范解读this · Issue #7 · mqyqingfeng/Blog (github.com)](https://github.com/mqyqingfeng/Blog/issues/7)
+
+箭头函数是个例外，他本身没有this，在里面使用this是根据作用域链向上查找上级作用域里的this。
 
 ## call
 
