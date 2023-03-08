@@ -21,9 +21,9 @@ tag:
 
 ## call
 
-call的作用是临时改变this的指向并执行函数
+**`call()`** 方法使用一个指定的 `this` 值和单独给出的一个或多个参数来**调用**一个函数。
 
-所以可以利用上述this的第2种场景
+所以可以利用上述this的第2种场景去实现
 
 1. 把要调用的函数添加到指定对象中
 
@@ -78,17 +78,16 @@ let res = context[soleKey](...args)
 
 ## bind
 
-bind的作用是创建一个新函数，当这个新函数被调用时，bind() 的第一个参数将作为它运行时的 this，之后的一序列参数将会在传递的实参前传入作为它的参数
+**`bind()`** 方法**创建一个新的函数**，在 `bind()` 被调用时，这个**新函数的 `this` 被指定为 `bind()` 的第一个参数**，而**其余参数将作为新函数的参数**，供调用时使用。
 
-那么要做的就是
+我们要做的就是：
 
-1. 返回一个函数
-2. 在返回的函数里面绑定bind传来的context
-3. 传参处理
+1. return一个新函数
+2. 新函数里使用call改变this为bind的第一个参数
+3. 传入bind的剩余参数与新函数的剩余参数并执行
 
 ```js
 Function.prototype.myBind = function (context，...args1) { 
-  // 使用了myBind里的context、args1、this，形成了闭包
   return (...args2) => {
         return this.call(context,...args1,...args2)
     }
@@ -110,20 +109,55 @@ fn(3)   //this {name: '叮叮', age: 18}   args 1 2 3
 fn.call(obj2,4,5,6) //this {name: '叮叮', age: 18}   args 1 2 4
 ```
 
-这样会有两个问题，返回的函数有可能是要去做构造函数去使用的，但是箭头函数不能作为构造函数使用
+上述这样会有两个问题
 
-第二是
+1. 返回的函数有可能是要去做构造函数去使用的，但是箭头函数不能作为构造函数使用
 
-其实this是有优先级的
+2. this是有优先级的
 
-new Fn() > fn.call/apply/bind() > obj.fn() > fn()
+   new Fn() > fn.call/apply/bind() > obj.fn() > fn()
 
-如果返回的函数作为构造函数去new实例对象的话，this指向是不会变到new出来的新对象的。
+   我们现在返回的函数作为构造函数去new实例对象的话，this指向是不会变到new出来的新对象的。原始bind方法this是正确的。
 
 所以需要
 
-1. 把构造函数改为普通函数，myBind的this用一个变量去接传给普通函数
+1. 把箭头函数改为普通函数，myBind的this用一个变量去接传给普通函数
 2. 如果是new调用，让他指向正确的this
 
+箭头函数好改，但是怎么判断他是由new去调用的呢？
 
+先来看看new做了什么：
+
+1. 创建一个新对象
+2. 新对象的隐式原型指向构造函数的原型对象
+3. 新对象作为构造函数的this执行构造函数
+4. 返回构造函数的返回值或者新对象
+
+写个代码实现一下：
+
+```js
+let myNew = function(fun,...args){
+    let obj = {}
+    obj.__proto__ = fun.prototype
+    let res = fun.call(obj,...args)
+    return res || obj
+}
+```
+
+可以看到：new在第二步把新对象原本指向Object的隐式原型改为了指向构造函数的原型对象
+
+那么我们用 instanceof 去判断新对象的原型是不是return出去的函数就可以了
+
+其次new出来的对象要使用
+
+```js
+Function.prototype.myBind = function (context, ...args1) {
+    let _this = this;
+    let fBound = function(...args2){
+        return _this.call(this instanceof fBound ? this: context, ...args1, ...args2)
+    }
+    fBound.prototype = Object.create(this.prototype)
+    return fBound
+}
+```
 
