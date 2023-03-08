@@ -15,7 +15,7 @@ tag:
 3. 通过call/apply/bind调用，this绑定的是指定对象
 4. 在new中调用，this绑定的是新创建的对象
 
-以上这些指向只是根据常用场景来说的，this指向的原理可以看：[JavaScript深入之从ECMAScript规范解读this · Issue #7 · mqyqingfeng/Blog (github.com)](https://github.com/mqyqingfeng/Blog/issues/7)
+以上这些指向只是根据现象来说的，this指向的原理可以看大佬的文章：[JavaScript深入之从ECMAScript规范解读this · Issue #7 · mqyqingfeng/Blog (github.com)](https://github.com/mqyqingfeng/Blog/issues/7)
 
 箭头函数是个例外，他本身没有this，在里面使用this是根据作用域链向上查找上级作用域里的this。
 
@@ -44,7 +44,7 @@ Function.prototype.myCall = function (context, ...args) {
     let soleKey = Symbol()
     //把要调用的函数添加到指定对象中
     context[soleKey] = this
-    //在指定上下文对象中调用，this指向了context
+    //被context调用，this指向了context
     let res = context[soleKey](...args)
     //调用后删除存入的方法
     delete context[soleKey]
@@ -64,7 +64,7 @@ let obj = {
     age: 18,
 }
 //myCall被fun调用  所以里面的this就是fun
-//和call表现不同的是：myCall调用时obj多了fun方法，我们是在调用后删除的
+//和call表现不同的是：myCall调用时obj多了fun方法，我们是在调用后删除的，不过应该不会有什么影响
 fun.myCall(obj, 1, 2, 3)//this {name: '铛铛', age: 18, Symbol(): ƒ}   args 1 2 3
 ```
 
@@ -78,23 +78,39 @@ let res = context[soleKey](...args)
 
 ## bind
 
-bind的作用是返回一个this永久绑定到指定对象的函数。
+bind的作用是创建一个新函数，当这个新函数被调用时，bind() 的第一个参数将作为它运行时的 this，之后的一序列参数将会在传递的实参前传入作为它的参数
 
-那么只要返回一个函数，让函数引用myBind传的this和context，这样调用之后就会形成一个闭包，每次调用都是返回myBind的this去指向最开始的context，args1也会作为return出去的函数的固定参数，实现偏函数（柯里化）
+那么要做的就是
+
+1. 返回一个函数
+2. 在返回的函数里面绑定bind传来的context
+3. 传参处理
 
 ```js
 Function.prototype.myBind = function (context，...args1) { 
-    return (...args2) => {
-      	// 使用的是箭头函数，this是myBind的this
+  // 使用了myBind里的context、args1、this，形成了闭包
+  return (...args2) => {
         return this.call(context,...args1,...args2)
     }
 }
-
+let fun = function (a, b, c) {
+    console.log("this", this)
+    console.log("args", a, b, c)
+}
+let obj1 = {
+    name: "叮叮",
+    age: 18,
+}
+let obj2 = {
+    name: "铛铛",
+    age: 23,
+}
+let fn = fun.myBind(obj1,1,2)
+fn(3)   //this {name: '叮叮', age: 18}   args 1 2 3
+fn.call(obj2,4,5,6) //this {name: '叮叮', age: 18}   args 1 2 4
 ```
 
 这样会有两个问题，返回的函数有可能是要去做构造函数去使用的，但是箭头函数不能作为构造函数使用
-
-//第一个是箭头函数不能做为构造函数使用
 
 第二是
 
