@@ -154,8 +154,10 @@ let myNew = function(fun,...args){
 Function.prototype.myBind = function (context, ...args1) {
     let _this = this;
     let fBound = function(...args2){
+      	//判断上下文对象的prototype有没有fBound的实例对象
         return _this.call(this instanceof fBound ? this: context, ...args1, ...args2)
     }
+    //
     fBound.prototype = Object.create(this.prototype)
     return fBound
 }
