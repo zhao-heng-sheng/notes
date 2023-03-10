@@ -115,18 +115,18 @@ fn.call(obj2,4,5,6) //this {name: '叮叮', age: 18}   args 1 2 4
 
 2. this是有优先级的
 
-   new Fn() > fn.call/apply/bind() > obj.fn() > fn()
+   `new Fn() > fn.call/apply/bind() > obj.fn() > fn()
 
    我们现在返回的函数作为构造函数去new实例对象的话，this指向是不会变到new出来的新对象的。原始bind方法this是正确的。
 
 所以需要
 
-1. 把箭头函数改为普通函数，myBind的this用一个变量去接传给普通函数
+1. 把箭头函数改为普通函数
 2. 如果是new调用，让他指向正确的this
 
 箭头函数好改，但是怎么判断他是由new去调用的呢？
 
-先来看看new做了什么：
+先来看看`new`做了什么：
 
 1. 创建一个新对象
 2. 新对象的隐式原型指向构造函数的原型对象
@@ -144,9 +144,9 @@ let myNew = function(fun,...args){
 }
 ```
 
-可以看到：new在第二步把新对象原本指向Object的隐式原型改为了指向构造函数的原型对象
+可以看到：`new`在第二步把新对象原本指向Object的隐式原型改为了指向构造函数的原型对象
 
-那么我们用 instanceof 去判断新对象的原型是不是return出去的函数就可以了
+那么我们用 `instanceof` 去判断return出的函数的原型在不在新对象的原型链上就可以了
 
 其次new出来的对象要使用
 
@@ -154,7 +154,8 @@ let myNew = function(fun,...args){
 Function.prototype.myBind = function (context, ...args1) {
     let _this = this;
     let fBound = function(...args2){
-      	//判断上下文对象的prototype有没有fBound的实例对象
+      	//new第二步把新对象的隐式原型指向了fBound的实例对象
+      	//new第三步会调用call，传的this是新对象。判断fBound的原型在不在新对象的原型链上
         return _this.call(this instanceof fBound ? this: context, ...args1, ...args2)
     }
     //
