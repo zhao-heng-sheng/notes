@@ -148,14 +148,14 @@ let myNew = function(fun,...args){
 
 那么我们用 `instanceof` 去判断return出的函数的原型在不在新对象的原型链上就可以了
 
-其次new出来的对象要使用
+其次对new出来的对象做下继承，
 
 ```js
 Function.prototype.myBind = function (context, ...args1) {
     let _this = this;
     let fBound = function(...args2){
       	//new第二步把新对象的隐式原型指向了fBound的实例对象
-      	//new第三步会调用call，传的this是新对象。判断fBound的原型在不在新对象的原型链上
+      	//new第三步会调用call，传的this是新对象。判断fBound的原型在不在新对象的原型链上，也可以用es6 new的一个新属性new.target判断是否是new调用的。
         return _this.call(this instanceof fBound ? this: context, ...args1, ...args2)
     }
     //
