@@ -15,9 +15,7 @@ tag:
 3. 通过call/apply/bind调用，this绑定的是指定对象
 4. 在new中调用，this绑定的是新创建的对象
 
-以上这些指向只是根据现象来说的，this指向的原理可以看大佬的文章：[JavaScript深入之从ECMAScript规范解读this · Issue #7 · mqyqingfeng/Blog (github.com)](https://github.com/mqyqingfeng/Blog/issues/7)
-
-箭头函数是个例外，他本身没有this，在里面使用this是根据作用域链向上查找上级作用域里的this。
+箭头函数是个例外，他本身没有this，在里面使用this是根据作用域链依次查找上级作用域里的this。
 
 ## call
 
@@ -148,7 +146,7 @@ let myNew = function(fun,...args){
 
 那么我们用 `instanceof` 去判断return出的函数的原型在不在新对象的原型链上就可以了
 
-其次对new出来的对象做下继承，
+其次还要对return出的函数的原型做下继承，让他更符合原生bind的行为。
 
 ```js
 Function.prototype.myBind = function (context, ...args1) {
@@ -158,9 +156,30 @@ Function.prototype.myBind = function (context, ...args1) {
       	//new第三步会调用call，传的this是新对象。判断fBound的原型在不在新对象的原型链上，也可以用es6 new的一个新属性new.target判断是否是new调用的。
         return _this.call(this instanceof fBound ? this: context, ...args1, ...args2)
     }
-    //
+    //Object.create会创建一个 隐式原型指向传入的值 的空对象，可以完成继承。
     fBound.prototype = Object.create(this.prototype)
     return fBound
 }
+
+
+let Fun = function (a, b, c) {
+    console.log("this", this)
+    console.log("args", a, b, c)
+    this.a = a;
+    this.b = b;
+}
+Fun.prototype.hello = function(){
+    return 'hello'
+}
+let obj1 = {
+    name: "叮叮",
+    age: 18,
+}
+let fn = Fun.myBind(obj1,1)
+let obj = new fn(2)
+console.log(obj.a,obj.b,obj.hello())  //1 2 'hello'
 ```
 
+实现this改变还是挺简单的，复杂的是怎么判断他是被new调用的。看了下es6，有new.target方法可以准确快速的去判断[new.target - JavaScript | MDN (mozilla.org)](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/new.target)
+
+以上就是bind的实现。
