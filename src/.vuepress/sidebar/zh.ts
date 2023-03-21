@@ -11,4 +11,6 @@ export const zhSidebar = sidebar({
         },
     ],
     "/JavaScript/": "structure",
+    "/vue/": "structure",
+    "/工具/": "structure",
 })

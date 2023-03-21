@@ -1,8 +1,10 @@
+# 自定义hook获取route问题
+
 在js中引入vue-router
 
 ```js
 import { useRoute, useRouter } from "vue-router"
-console.log(useRoute(),useRouter())	//undefined  undefined
+console.log(useRoute(),useRouter()) //undefined  undefined
 ```
 
 useRoute/useRouter必须写到setup中，在js中使用是获取不到的，值为undefined
@@ -22,4 +24,3 @@ watch(()=>router.currentRoute.value,(newVal)=>{
     console.log(newVal)
 })
 ```
-

@@ -1,6 +1,7 @@
 ---
 sidebarSorter: ["readme", "order", "date-desc", "title", "filename"]
 icon: javascript
+headerDepth: 2
 ---
 
 # 关于 JavaScript

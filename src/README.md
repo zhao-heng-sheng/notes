@@ -2,6 +2,7 @@
 home: true
 hero: false
 layout: BlogHome
+
 # icon: home
 title: 首页
 heroImage: /logo.svg
