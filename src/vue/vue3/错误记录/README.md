@@ -1,3 +1,6 @@
+---
+dir: {collapsible: false,text: '错误记录',order: -1}
+---
 # reactive赋值问题
 
 很多时候不知道对象里会有什么数据，初始值为{}

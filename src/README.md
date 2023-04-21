@@ -10,7 +10,9 @@ heroText: 赵恒盛的笔记
 heroFullScreen: false
 tagline: 你可以在这里放置你的口号与标语
 bgImage: https://zhaohs.cn/zb_users/theme/acgMora/style/img/thumb-1920-739436.png
+
 sidebarSorter: ["readme", "order","date-desc", "title", "filename"]
+
 # projects:
 #     - icon: project
 #       name: 项目名称

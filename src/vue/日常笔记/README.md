@@ -1,3 +1,6 @@
+---
+dir: {collapsible: false,text: '日常笔记',order: -1}
+---
 # 组件传值
 
 ### 父传子

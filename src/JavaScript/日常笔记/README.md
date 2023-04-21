@@ -1,3 +1,6 @@
+---
+dir: {collapsible: false,text: '日常笔记',order: -1}
+---
 # 线程、事件循环
 
 ## 浏览器的线程

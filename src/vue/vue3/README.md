@@ -1,3 +1,6 @@
+---
+dir: {collapsible: false,text: 'vue3',order: -1}
+---
 # 自定义hook获取route问题
 
 在js中引入vue-router
