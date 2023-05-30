@@ -11,3 +11,6 @@ dir: {collapsible: false,text: '书籍',order: -1}
 - [x] 一地鸡毛
 - [ ] vuejs技术内幕
 - [ ] vue源码解读
+- [ ] [javascript/README.md at cn · lin-123/javascript · GitHub](https://github.com/lin-123/javascript/blob/cn/README.md)
+- [ ] 一只特立独行的猪
+- [ ] 
