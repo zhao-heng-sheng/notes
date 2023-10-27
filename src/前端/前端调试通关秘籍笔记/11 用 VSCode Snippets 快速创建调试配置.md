@@ -6,3 +6,12 @@
 - scope(范围) 是指定 snippets 生效的语言
 
 这个 snippets 的作用就是在这个项目目录下的 js、ts 文件里，输入 log 的时候会提示，选中之后就会插入 body 部分的内容。
+
+
+
+- 指定光标位置：$x
+- 多光标编辑： \$x  $x
+- 指定 placeholder(占位符) 文本：${x:placeholder}
+- 指定多选值：${x|aaa,bbb|}
+- 取变量：$VariableName
+- 对变量做转换：${VariableName/正则/替换的文本/}
