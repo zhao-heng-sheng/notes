@@ -42,7 +42,7 @@ jobs:
       - name: Deploy to to server
         uses: wlixcc/SFTP-Deploy-Action@v1.0 
         with:
-          username: 'root'   #ssh user name
+          username: 'ubantu'   #ssh user name
           server: '118.195.232.109' #引用之前创建好的secret
           ssh_private_key: ${{ secrets.SSH_KEY }} #引用之前创建好的secret
           local_path: './src/.vuepress/dist'  # 对应我们项目build的文件夹路径
