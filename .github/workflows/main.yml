@@ -71,22 +71,28 @@ jobs:
 
           file_count=$(find ./src/.vuepress/dist -type f | wc -l)
 
+          # ---- 诊断：全部通过 ::error:: 注解输出，运行页未登录也能看到 ----
+          tcp_result=$(timeout 25 bash -c "exec 3<>/dev/tcp/$DEPLOY_HOST/$DEPLOY_PORT" 2>&1 && echo "TCP_OK" || echo "TCP_FAIL")
+
+          ssh_diag=$(timeout 60 ssh -vv -o BatchMode=yes -o ConnectTimeout=15 \
+            -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$known_hosts" \
+            -i "$key_file" -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" true 2>&1 | tail -n 25)
+
           {
             echo "### 部署诊断"
             echo
             echo "- 目标: \`$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PORT:$DEPLOY_PATH\`"
-            echo "- 待上传文件数: $file_count"
+            echo "- 文件数: $file_count"
+            echo "- TCP: $tcp_result"
             echo "- 私钥字节数: $(wc -c < "$key_file")"
             echo "- 私钥首行: $(head -n 1 "$key_file")"
             echo
             echo '```'
-            timeout 90 ssh -vv -o BatchMode=yes -o ConnectTimeout=20 \
-              -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$known_hosts" \
-              -i "$key_file" -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" true 2>&1 \
-              | grep -v -E '^(debug1: (Local version|Remote protocol|id_rsa|ssh2|cipher|kex|host key algorithm|server host key|SSH2_MSG_KEXINIT sent|expecting SSH2_MSG_KEXINIT))' \
-              | tail -n 30
+            echo "$ssh_diag"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+          echo "::error title=部署诊断::$(printf '%s' "$ssh_diag" | tr '\n' '%0A')"
 
           sftp -b "$batch_file" \
             -P "$DEPLOY_PORT" \
@@ -106,5 +112,6 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+          echo "::error title=SFTP 输出::$(tail -n 30 "$RUNNER_TEMP/sftp.log" | tr '\n' '%0A')"
           echo "sftp exit code: $status"
           exit $status
