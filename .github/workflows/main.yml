@@ -11,7 +11,7 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       # 部署失败时把诊断结果写成独立 check run，便于在提交页直接查看
       checks: write
 
@@ -139,3 +139,23 @@ jobs:
             ${{ github.workspace }}/deploy-diagnostic.log
           retention-days: 7
           if-no-files-found: warn
+
+      # 同一份诊断再推到独立分支 ci-diagnostics：
+      # 走 git 通道不受 GitHub API 限流影响，便于本地直接 fetch 查看。
+      - name: Push deploy diagnostic to branch
+        if: always()
+        run: |
+          set -uo pipefail
+          cd "$GITHUB_WORKSPACE"
+
+          if [ ! -f deploy-diagnostic.log ]; then
+            echo "no diagnostic file, skip"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B ci-diagnostics
+          git add -f deploy-diagnostic.log
+          git commit -m "ci: deploy diagnostic (run ${{ github.run_number }})" || exit 0
+          git push --force origin ci-diagnostics
