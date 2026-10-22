@@ -41,13 +41,44 @@ jobs:
       - name: Build VuePress site
         run: pnpm docs:build
 
-      # 查看 workflow 的文档来获取更多信息
-      # @see https://github.com/crazy-max/ghaction-github-pages
-      - name: Deploy to to server
-        uses: wlixcc/SFTP-Deploy-Action@v1.0
-        with:
-          username: 'root'   #ssh user name
-          server: '118.195.232.109' #引用之前创建好的secret
-          ssh_private_key: ${{ secrets.SSH_KEY }} #引用之前创建好的secret
-          local_path: './src/.vuepress/dist'  # 对应我们项目build的文件夹路径
-          remote_path: '/www/wwwroot/notes'
+      # 部署到服务器
+      #
+      # 这里不用 wlixcc/SFTP-Deploy-Action：它是基于 alpine:3.10（早已 EOL）的
+      # Docker 容器 action，容器型 action 正在被 GitHub 弃用，且旧版 OpenSSH
+      # 客户端与服务端新版的算法协商容易出问题。
+      # 改为直接用 runner 自带的 OpenSSH 客户端，行为可预期，报错也直接出现在日志里。
+      - name: Deploy to server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          DEPLOY_HOST: '118.195.232.109'
+          DEPLOY_PORT: '22'
+          DEPLOY_USER: 'root'
+          DEPLOY_PATH: '/www/wwwroot/notes'
+        run: |
+          set -euo pipefail
+
+          key_file="$RUNNER_TEMP/deploy_key.pem"
+          known_hosts="$RUNNER_TEMP/known_hosts"
+          batch_file="$RUNNER_TEMP/sftp_batch.txt"
+
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$key_file"
+          chmod 600 "$key_file"
+
+          : > "$known_hosts"
+
+          # 与原 action 保持一致：把 dist 目录里的内容同步到站点根目录
+          printf 'put -r ./src/.vuepress/dist %s\n' "$DEPLOY_PATH" > "$batch_file"
+
+          echo "Uploading $(find ./src/.vuepress/dist -type f | wc -l) files to $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH"
+
+          sftp -b "$batch_file" \
+            -P "$DEPLOY_PORT" \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=accept-new \
+            -o UserKnownHostsFile="$known_hosts" \
+            -o ConnectTimeout=30 \
+            -o ServerAliveInterval=15 \
+            -i "$key_file" \
+            "$DEPLOY_USER@$DEPLOY_HOST"
+
+          echo "Deploy finished"
