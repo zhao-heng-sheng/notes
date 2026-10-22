@@ -10,6 +10,10 @@ on:
 jobs:
   docs:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # 部署失败时把诊断结果写成独立 check run，便于在提交页直接查看
+      checks: write
 
     steps:
       - uses: actions/checkout@v7
@@ -50,6 +54,7 @@ jobs:
       - name: Deploy to server
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEPLOY_HOST: '118.195.232.109'
           DEPLOY_PORT: '22'
           DEPLOY_USER: 'root'
@@ -70,30 +75,22 @@ jobs:
           printf 'put -r ./src/.vuepress/dist %s\n' "$DEPLOY_PATH" > "$batch_file"
 
           file_count=$(find ./src/.vuepress/dist -type f | wc -l)
+          key_bytes=$(wc -c < "$key_file")
+          key_head=$(head -n 1 "$key_file")
 
-          # ---- 诊断：全部通过 ::error:: 注解输出，运行页未登录也能看到 ----
-          tcp_result=$(timeout 25 bash -c "exec 3<>/dev/tcp/$DEPLOY_HOST/$DEPLOY_PORT" 2>&1 && echo "TCP_OK" || echo "TCP_FAIL")
+          # ---- 诊断：TCP 连通性 ----
+          if timeout 20 bash -c "exec 3<>/dev/tcp/$DEPLOY_HOST/$DEPLOY_PORT" 2>/dev/null; then
+            tcp_result="TCP_OK"
+          else
+            tcp_result="TCP_FAIL"
+          fi
 
+          # ---- 诊断：ssh 连接过程 ----
           ssh_diag=$(timeout 60 ssh -vv -o BatchMode=yes -o ConnectTimeout=15 \
             -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$known_hosts" \
-            -i "$key_file" -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" true 2>&1 | tail -n 25)
+            -i "$key_file" -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" true 2>&1 | tail -n 30)
 
-          {
-            echo "### 部署诊断"
-            echo
-            echo "- 目标: \`$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PORT:$DEPLOY_PATH\`"
-            echo "- 文件数: $file_count"
-            echo "- TCP: $tcp_result"
-            echo "- 私钥字节数: $(wc -c < "$key_file")"
-            echo "- 私钥首行: $(head -n 1 "$key_file")"
-            echo
-            echo '```'
-            echo "$ssh_diag"
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-
-          echo "::error title=部署诊断::$(printf '%s' "$ssh_diag" | tr '\n' '%0A')"
-
+          # ---- 实际部署 ----
           sftp -b "$batch_file" \
             -P "$DEPLOY_PORT" \
             -o BatchMode=yes \
@@ -106,12 +103,35 @@ jobs:
 
           status=${PIPESTATUS[0]}
 
+          # ---- 诊断汇总 ----
+          # 未登录 GitHub 看不到 Actions 日志，所以把诊断结果写成一个独立的
+          # check run，挂在本次提交上，公开仓库可直接通过 API / 提交页读取。
+          diag_summary="host=${DEPLOY_HOST}:${DEPLOY_PORT} tcp=${tcp_result} files=${file_count} key=${key_bytes}B sftp_exit=${status}"
+          diag_text=$(printf '### 环境\n\n- 目标: `%s@%s:%s:%s`\n- TCP: %s\n- 文件数: %s\n- 私钥: %s 字节，首行 `%s`\n- sftp 退出码: %s\n\n### SSH 连接过程\n\n```\n%s\n```\n\n### SFTP 输出\n\n```\n%s\n```\n' \
+            "$DEPLOY_USER" "$DEPLOY_HOST" "$DEPLOY_PORT" "$DEPLOY_PATH" \
+            "$tcp_result" "$file_count" "$key_bytes" "$key_head" "$status" \
+            "$ssh_diag" "$(tail -n 40 "$RUNNER_TEMP/sftp.log")")
+
           {
-            echo '```'
-            tail -n 30 "$RUNNER_TEMP/sftp.log"
-            echo '```'
+            echo "### 部署诊断"
+            echo
+            echo "$diag_text"
           } >> "$GITHUB_STEP_SUMMARY"
 
-          echo "::error title=SFTP 输出::$(tail -n 30 "$RUNNER_TEMP/sftp.log" | tr '\n' '%0A')"
+          jq -n \
+            --arg title "部署诊断" \
+            --arg summary "$diag_summary" \
+            --arg text "$diag_text" \
+            --arg sha "$GITHUB_SHA" \
+            '{name:$title, head_sha:$sha, status:"completed", conclusion:"failure", output:{title:$title, summary:$summary, text:$text}}' \
+            > "$RUNNER_TEMP/diag.json"
+
+          curl -sS -X POST \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${GITHUB_REPOSITORY}/check-runs" \
+            --data-binary "@$RUNNER_TEMP/diag.json" || true
+
           echo "sftp exit code: $status"
           exit $status
