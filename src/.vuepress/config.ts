@@ -1,7 +1,21 @@
+import { viteBundler } from "@vuepress/bundler-vite"
 import { defineUserConfig } from "vuepress"
 import theme from "./theme.js"
+
 export default defineUserConfig({
     base: "/",
+
+    // vuepress v2 rc 起 bundler 不再内置，需要显式声明
+    bundler: viteBundler(),
+
+    head: [
+        [
+            "script",
+            {},
+            // 在首屏渲染前写好季节，避免主题色闪烁
+            `(function(){try{var s=localStorage.getItem("zhs-notes:season");var m=new Date().getMonth()+1;var a=(m>=3&&m<=5)?"spring":(m>=6&&m<=8)?"summer":(m>=9&&m<=11)?"autumn":"winter";if(s&&s!=="auto"&&["spring","summer","autumn","winter"].indexOf(s)>-1)a=s;document.documentElement.setAttribute("data-season",a);}catch(e){}})();`,
+        ],
+    ],
 
     locales: {
         // "/": {

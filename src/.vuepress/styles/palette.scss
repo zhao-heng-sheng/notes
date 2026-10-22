@@ -1,2 +1,126 @@
-// you can change colors here
-$theme-color: #096dd9;
+// 四季主题色板
+//
+// 本文件里的变量会被 sass-palette 插件转成 CSS 变量：
+//   $season-spring-accent  →  --season-spring-accent
+// 写成 (light: …, dark: …) 映射后，插件会分别注入 :root 与 [data-theme='dark']，
+// 因此 index.scss 里只要 var(--season-spring-accent) 引用一次即可自动适配明暗模式。
+
+/* ============================== 春 · 樱粉 ============================== */
+$season-spring-accent: (
+  light: #d2648b,
+  dark: #f08ab0,
+);
+$season-spring-accent-hover: (
+  light: #b94f75,
+  dark: #f7a3c2,
+);
+$season-spring-accent-bg: (
+  light: #d2648b,
+  dark: #f08ab0,
+);
+$season-spring-accent-text: (
+  light: #fff,
+  dark: #2a1119,
+);
+$season-spring-accent-soft: (
+  light: rgba(210, 100, 139, 0.14),
+  dark: rgba(240, 138, 176, 0.16),
+);
+$season-spring-bg: (
+  light: #fffbfc,
+  dark: #191316,
+);
+$season-spring-bg-alt: (
+  light: #fbf1f4,
+  dark: #221a1e,
+);
+
+/* ============================== 夏 · 碧海 ============================== */
+$season-summer-accent: (
+  light: #1a9c8f,
+  dark: #46c8ba,
+);
+$season-summer-accent-hover: (
+  light: #158477,
+  dark: #6fd8cd,
+);
+$season-summer-accent-bg: (
+  light: #1a9c8f,
+  dark: #46c8ba,
+);
+$season-summer-accent-text: (
+  light: #fff,
+  dark: #06201d,
+);
+$season-summer-accent-soft: (
+  light: rgba(26, 156, 143, 0.14),
+  dark: rgba(70, 200, 186, 0.16),
+);
+$season-summer-bg: (
+  light: #f6fcfb,
+  dark: #101918,
+);
+$season-summer-bg-alt: (
+  light: #eaf7f5,
+  dark: #16211f,
+);
+
+/* ============================== 秋 · 赭石 ============================== */
+$season-autumn-accent: (
+  light: #c1682a,
+  dark: #e08b4a,
+);
+$season-autumn-accent-hover: (
+  light: #a2561f,
+  dark: #eda268,
+);
+$season-autumn-accent-bg: (
+  light: #c1682a,
+  dark: #e08b4a,
+);
+$season-autumn-accent-text: (
+  light: #fff,
+  dark: #2a1707,
+);
+$season-autumn-accent-soft: (
+  light: rgba(193, 104, 42, 0.14),
+  dark: rgba(224, 139, 74, 0.16),
+);
+$season-autumn-bg: (
+  light: #fdf9f4,
+  dark: #1a1512,
+);
+$season-autumn-bg-alt: (
+  light: #f8efe3,
+  dark: #221c17,
+);
+
+/* ============================== 冬 · 寒霭 ============================== */
+$season-winter-accent: (
+  light: #4a76c4,
+  dark: #7ba0e8,
+);
+$season-winter-accent-hover: (
+  light: #3a61a8,
+  dark: #9bb9f0,
+);
+$season-winter-accent-bg: (
+  light: #4a76c4,
+  dark: #7ba0e8,
+);
+$season-winter-accent-text: (
+  light: #fff,
+  dark: #0d1524,
+);
+$season-winter-accent-soft: (
+  light: rgba(74, 118, 196, 0.14),
+  dark: rgba(123, 160, 232, 0.16),
+);
+$season-winter-bg: (
+  light: #f7f9fc,
+  dark: #121519,
+);
+$season-winter-bg-alt: (
+  light: #eef2f8,
+  dark: #191e24,
+);

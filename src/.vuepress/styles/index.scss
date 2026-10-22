@@ -1,1 +1,99 @@
-// place your custom styles here
+// 自定义样式（注入在主题样式之后）
+//
+// 四季主题：把 palette.scss 里的季节色板映射到主题的强调色 / 背景色。
+// 季节由 <html data-season="spring|summer|autumn|winter"> 决定，
+// 该属性在首屏由内联脚本写入，避免主题色闪烁。
+
+/* ------------------------------ 四季主题映射 ------------------------------ */
+
+html[data-season="spring"] {
+  --vp-c-accent: var(--season-spring-accent);
+  --vp-c-accent-hover: var(--season-spring-accent-hover);
+  --vp-c-accent-bg: var(--season-spring-accent-bg);
+  --vp-c-accent-text: var(--season-spring-accent-text);
+  --vp-c-accent-soft: var(--season-spring-accent-soft);
+  --vp-c-bg: var(--season-spring-bg);
+  --vp-c-bg-alt: var(--season-spring-bg-alt);
+  --season-deco: #f7b8cd;
+}
+
+html[data-season="summer"] {
+  --vp-c-accent: var(--season-summer-accent);
+  --vp-c-accent-hover: var(--season-summer-accent-hover);
+  --vp-c-accent-bg: var(--season-summer-accent-bg);
+  --vp-c-accent-text: var(--season-summer-accent-text);
+  --vp-c-accent-soft: var(--season-summer-accent-soft);
+  --vp-c-bg: var(--season-summer-bg);
+  --vp-c-bg-alt: var(--season-summer-bg-alt);
+  --season-deco: #8fd9cf;
+}
+
+html[data-season="autumn"] {
+  --vp-c-accent: var(--season-autumn-accent);
+  --vp-c-accent-hover: var(--season-autumn-accent-hover);
+  --vp-c-accent-bg: var(--season-autumn-accent-bg);
+  --vp-c-accent-text: var(--season-autumn-accent-text);
+  --vp-c-accent-soft: var(--season-autumn-accent-soft);
+  --vp-c-bg: var(--season-autumn-bg);
+  --vp-c-bg-alt: var(--season-autumn-bg-alt);
+  --season-deco: #e0913c;
+}
+
+html[data-season="winter"] {
+  --vp-c-accent: var(--season-winter-accent);
+  --vp-c-accent-hover: var(--season-winter-accent-hover);
+  --vp-c-accent-bg: var(--season-winter-accent-bg);
+  --vp-c-accent-text: var(--season-winter-accent-text);
+  --vp-c-accent-soft: var(--season-winter-accent-soft);
+  --vp-c-bg: var(--season-winter-bg);
+  --vp-c-bg-alt: var(--season-winter-bg-alt);
+  --season-deco: #c3d6ee;
+}
+
+/* --------------------------- 季节背景氛围（渐变） --------------------------- */
+
+html[data-season] body {
+  background-image: linear-gradient(
+    180deg,
+    var(--season-deco) 0%,
+    transparent 42%
+  );
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: 100% 100%;
+}
+
+/* 暗色模式下压低氛围色浓度，避免整页发灰 */
+html[data-theme="dark"][data-season] body {
+  background-image: linear-gradient(
+    180deg,
+    var(--season-deco) 0%,
+    transparent 32%
+  );
+  opacity: 1;
+}
+
+/* 深色模式里季节色需要更淡，单独再压一档 */
+html[data-theme="dark"][data-season="spring"] {
+  --season-deco: rgba(240, 138, 176, 0.16);
+}
+
+html[data-theme="dark"][data-season="summer"] {
+  --season-deco: rgba(70, 200, 186, 0.14);
+}
+
+html[data-theme="dark"][data-season="autumn"] {
+  --season-deco: rgba(224, 139, 74, 0.14);
+}
+
+html[data-theme="dark"][data-season="winter"] {
+  --season-deco: rgba(123, 160, 232, 0.16);
+}
+
+/* -------------------------------- 打印适配 -------------------------------- */
+
+@media print {
+  html[data-season] body {
+    background-image: none;
+  }
+}

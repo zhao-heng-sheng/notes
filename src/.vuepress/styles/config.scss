@@ -1,3 +1,11 @@
-// you can change config here
+// 构建期配置：主题色、颜色列表
+//
+// 说明：四季主题的颜色在运行时由 `styles/index.scss` 按 <html data-season="..."> 注入，
+// 这里的 $theme-color 只是首屏在 JS 接管前的兜底值。
+
+/* 主题色 */
+$theme-color: #d2648b !default;
+
+/* 颜色列表（用于徽章、标签等） */
 $colors: #c0392b, #d35400, #f39c12, #27ae60, #16a085, #2980b9, #8e44ad, #2c3e50,
   #7f8c8d !default;

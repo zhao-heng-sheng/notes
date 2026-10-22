@@ -4,6 +4,13 @@
     "description": "A project of vuepress-theme-hope",
     "license": "MIT",
     "type": "module",
+    "packageManager": "pnpm@10.8.0",
+    "engines": {
+        "node": ">=20.19.0"
+    },
+    "volta": {
+        "node": "24.19.0"
+    },
     "scripts": {
         "start": "vuepress dev src",
         "docs:build": "vuepress build src",
@@ -12,9 +19,19 @@
         "docs:update-package": "pnpm dlx vp-update"
     },
     "devDependencies": {
-        "@vuepress/client": "2.0.0-beta.60",
-        "vue": "^3.2.47",
-        "vuepress": "2.0.0-beta.60",
-        "vuepress-theme-hope": "2.0.0-beta.178"
+        "@vue/repl": "4.1.1",
+        "@vuepress/bundler-vite": "2.0.0-rc.31",
+        "@vuepress/plugin-feed": "2.0.0-rc.137",
+        "@vuepress/plugin-revealjs": "2.0.0-rc.137",
+        "@vuepress/plugin-slimsearch": "2.0.0-rc.137",
+        "echarts": "6.0.0",
+        "flowchart.ts": "3.0.1",
+        "katex": "0.16.38",
+        "mermaid": "12.0.0",
+        "sass": "^1.105.2",
+        "sass-embedded": "^1.105.2",
+        "vue": "^3.5.44",
+        "vuepress": "2.0.0-rc.31",
+        "vuepress-theme-hope": "2.0.0-rc.110"
     }
 }

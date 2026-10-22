@@ -8,19 +8,10 @@ export default hopeTheme({
         name: "赵恒盛",
         url: "https://mrhope.site",
     },
-    themeColor: {
-        blue: "#2196f3",
-        red: "#f26d6d",
-        green: "#3eaf7c",
-        orange: "#fb9b5f",
-    },
-    iconAssets: "iconfont",
-
     logo: "/logo.svg",
 
     repo: "zhao-heng-sheng/notes",
     repoDisplay: true,
-    docsDir: "src",
     docsBranch: "master",
     blog: {
         timeline: "逝者如斯夫，不舍昼夜。",
@@ -68,7 +59,7 @@ export default hopeTheme({
             navbar: zhNavbar,
             // sidebar
             sidebar: zhSidebar,
-            navbarLayout: { start: ["Brand","Search"], center: [], end: ["Links","Language",  "Outlook", "Repo",] },
+            navbarLayout: { start: ["Brand", "Search"], center: [], end: ["Links", "Language", "Outlook", "Repo"] },
             // footer: '<a href="https://beian.miit.gov.cn/" target="_blank">豫ICP备18021175号</a>',
             copyright: '<a href="https://beian.miit.gov.cn/" target="_blank">豫ICP备18021175号</a> | Copyright © 2023 赵恒盛',
             displayFooter: true,
@@ -91,6 +82,54 @@ export default hopeTheme({
         },
     },
 
+    /**
+     * Markdown 扩展
+     *
+     * v2.0.0-rc 起，`plugins.mdEnhance` 已废弃，改为顶层的 `markdown` 选项，
+     * 内部拆分成各个官方 `@vuepress/plugin-markdown-*` 插件的选项。
+     */
+    markdown: {
+        align: true,
+        attrs: true,
+        codeTabs: true,
+        demo: true,
+        echarts: true,
+        figure: true,
+        flowchart: true,
+        gfm: true,
+        hint: true,
+        imgLazyload: true,
+        imgSize: true,
+        include: true,
+        mark: true,
+        math: true,
+        mermaid: true,
+        playground: {
+            presets: ["ts", "vue"],
+        },
+        revealjs: {
+            plugins: ["highlight", "math", "search", "notes", "zoom"],
+        },
+        stylize: [
+            {
+                matcher: "Recommended",
+                replacer: ({ tag }) => {
+                    if (tag === "em")
+                        return {
+                            tag: "Badge",
+                            attrs: { type: "tip" },
+                            content: "Recommended",
+                        }
+                },
+            },
+        ],
+        sub: true,
+        sup: true,
+        tabs: true,
+        vPre: true,
+        vuePlayground: true,
+    },
+
     plugins: {
         blog: true,
 
@@ -104,49 +143,13 @@ export default hopeTheme({
             mapping: "pathname",
             lazyLoading: true,
         },
-        // all features are enabled for demo, only preserve features you need here
-        mdEnhance: {
-            align: true,
-            attrs: true,
-            chart: true,
-            codetabs: true,
-            container: true,
-            demo: true,
-            echarts: true,
-            figure: true,
-            flowchart: true,
-            gfm: true,
-            imgLazyload: true,
-            imgSize: true,
-            include: true,
-            katex: true,
-            mark: true,
-            mermaid: true,
-            playground: {
-                presets: ["ts", "vue"],
-            },
-            presentation: {
-                plugins: ["highlight", "math", "search", "notes", "zoom"],
-            },
-            stylize: [
-                {
-                    matcher: "Recommended",
-                    replacer: ({ tag }) => {
-                        if (tag === "em")
-                            return {
-                                tag: "Badge",
-                                attrs: { type: "tip" },
-                                content: "Recommended",
-                            }
-                    },
-                },
-            ],
-            sub: true,
-            sup: true,
-            tabs: true,
-            vPre: true,
-            vuePlayground: true,
-        },
+
+        // 站内搜索（客户端索引，无需额外服务）
+        slimsearch: true,
+
+        // RSS / 站点地图
+        feed: true,
+        sitemap: true,
 
         // uncomment these if you want a PWA
         // pwa: {
@@ -171,19 +174,15 @@ export default hopeTheme({
         //         type: "image/png",
         //       },
         //       {
-        //         src: "/assets/icon/chrome-mask-192.png",
+        //         src: "/assets/icon/chrome-192.png",
         //         sizes: "192x192",
-        //         purpose: "maskable",
+        //         purpose: "any",
         //         type: "image/png",
         //       },
         //       {
         //         src: "/assets/icon/chrome-512.png",
         //         sizes: "512x512",
-        //         type: "image/png",
-        //       },
-        //       {
-        //         src: "/assets/icon/chrome-192.png",
-        //         sizes: "192x192",
+        //         purpose: "any",
         //         type: "image/png",
         //       },
         //     ],
@@ -194,7 +193,7 @@ export default hopeTheme({
         //         url: "/demo/",
         //         icons: [
         //           {
-        //             src: "/assets/icon/guide-maskable.png",
+        //             src: "/assets/icon/chrome-mask-192.png",
         //             sizes: "192x192",
         //             purpose: "maskable",
         //             type: "image/png",

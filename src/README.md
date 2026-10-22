@@ -1,7 +1,7 @@
 ---
 home: true
 hero: false
-layout: BlogHome
+layout: Blog
 
 # icon: home
 title: 首页
