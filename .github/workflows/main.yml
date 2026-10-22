@@ -56,7 +56,8 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DEPLOY_HOST: '118.195.232.109'
-          DEPLOY_PORT: '22'
+          # 端口可以用仓库变量 DEPLOY_PORT 覆盖，不用改代码
+          DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
           DEPLOY_USER: 'root'
           DEPLOY_PATH: '/www/wwwroot/notes'
         run: |
@@ -103,6 +104,10 @@ jobs:
           fi
           echo "- TCP 结果: $tcp_result"
 
+          # ---- 诊断：网站本身是否可达（用于区分「整台机器不通」还是「只有 SSH 不通」）----
+          http_result=$(timeout 20 curl -sS -o /dev/null -w '%{http_code}' "https://note.zhaohs.cn/" 2>&1 || true)
+          echo "- 站点 HTTP 探测: $http_result"
+
           # ---- 诊断：ssh 连接过程 ----
           # 注意：Actions 默认 shell 带 -e，诊断命令失败必须显式吞掉，
           # 否则会中断整个步骤（这正是之前 exit 255 的假象来源）
@@ -114,6 +119,8 @@ jobs:
 
           # ---- 实际部署 ----
           echo "### SFTP 上传"
+          # 关闭 errexit，否则 sftp 失败会直接中断脚本，拿不到退出码
+          set +e
           sftp -b "$batch_file" \
             -P "$DEPLOY_PORT" \
             -o BatchMode=yes \
@@ -122,9 +129,9 @@ jobs:
             -o ConnectTimeout=30 \
             -o ServerAliveInterval=15 \
             -i "$key_file" \
-            "$DEPLOY_USER@$DEPLOY_HOST" 2>&1 | tee "$RUNNER_TEMP/sftp.log" || true
-
+            "$DEPLOY_USER@$DEPLOY_HOST" 2>&1 | tee "$RUNNER_TEMP/sftp.log"
           status=${PIPESTATUS[0]}
+          set -e
           echo "### sftp 退出码: $status"
 
           # 同步 workspace 副本
@@ -135,7 +142,7 @@ jobs:
       # 诊断日志以 artifact 形式留存：Actions 日志对未登录访客不可见，
       # 而公开仓库的 artifact 可以直接通过 API 下载查看。
       - name: Upload deploy diagnostic
-        if: always()
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: deploy-diagnostic
@@ -148,7 +155,7 @@ jobs:
       # 同一份诊断再推到独立分支 ci-diagnostics：
       # 走 git 通道不受 GitHub API 限流影响，便于本地直接 fetch 查看。
       - name: Push deploy diagnostic to branch
-        if: always()
+        if: failure()
         run: |
           set -uo pipefail
           cd "$GITHUB_WORKSPACE"
