@@ -12,24 +12,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           # “最近更新时间” 等 git 日志相关信息，需要拉取全部提交记录
           fetch-depth: 0
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
-          # 选择要使用的 pnpm 版本
-          version: 10
-          # 使用 pnpm 安装依赖
+          # 这里不要写 version：pnpm 版本统一由 package.json 的 packageManager 字段决定。
+          # 同时指定两者会冲突，action 直接报
+          # "Multiple versions of pnpm specified" 而失败。
           run_install: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          # 使用 node 版本（vuepress-theme-hope v2 要求 >= 20.19）
-          node-version: 22
+          # 与 package.json 的 volta.node / .npmrc use-node-version 保持一致
+          # （vuepress v2 rc / theme-hope v2 要求 node >= 20.19）
+          node-version: 24.19.0
           # 缓存 pnpm 依赖
           cache: pnpm
 
