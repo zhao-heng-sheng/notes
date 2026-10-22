@@ -6,3 +6,5 @@ src/.vuepress/dist/
 .history
 *.log
 *.log*
+
+deploy-diagnostic.log

@@ -67,31 +67,48 @@ jobs:
           batch_file="$RUNNER_TEMP/sftp_batch.txt"
           diag_file="$RUNNER_TEMP/deploy-diagnostic.log"
 
+          # 从第一步起就把全部输出同时写进诊断文件，
+          # 无论脚本在哪一步退出，文件都一定存在
+          : > "$diag_file"
+          exec > >(tee -a "$diag_file") 2>&1
+          trap 'echo "### 脚本退出码: $?" >> "$diag_file"' EXIT
+
+          echo "### 部署开始 $(date -Is)"
+          echo "- 目标: $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PORT:$DEPLOY_PATH"
+          echo "- runner 工具: jq=$(command -v jq || echo NO) curl=$(command -v curl || echo NO) ssh=$(command -v ssh || echo NO) sftp=$(command -v sftp || echo NO)"
+
           # GitHub secret 里私钥常被存成字面量 \n，这里还原成真实换行
           printf '%s' "$SSH_PRIVATE_KEY" | sed 's/\\n/\n/g' | tr -d '\r' > "$key_file"
           chmod 600 "$key_file"
           : > "$known_hosts"
 
+          echo "- 私钥: $(wc -c < "$key_file") 字节，首行 $(head -n 1 "$key_file")"
+          echo "- ssh 版本: $(ssh -V 2>&1)"
+
           # 与原 action 保持一致：把 dist 目录里的内容同步到站点根目录
           printf 'put -r ./src/.vuepress/dist %s\n' "$DEPLOY_PATH" > "$batch_file"
 
           file_count=$(find ./src/.vuepress/dist -type f | wc -l)
-          key_bytes=$(wc -c < "$key_file")
-          key_head=$(head -n 1 "$key_file")
+          echo "- 待上传文件数: $file_count"
 
           # ---- 诊断：TCP 连通性 ----
-          if timeout 20 bash -c "exec 3<>/dev/tcp/$DEPLOY_HOST/$DEPLOY_PORT" 2>/dev/null; then
+          echo "### TCP 连通性探测 ($DEPLOY_HOST:$DEPLOY_PORT)"
+          if timeout 20 bash -c "exec 3<>/dev/tcp/$DEPLOY_HOST/$DEPLOY_PORT" 2>&1; then
             tcp_result="TCP_OK"
           else
             tcp_result="TCP_FAIL"
           fi
+          echo "- TCP 结果: $tcp_result"
 
           # ---- 诊断：ssh 连接过程 ----
-          ssh_diag=$(timeout 60 ssh -vv -o BatchMode=yes -o ConnectTimeout=15 \
+          echo "### SSH 连接过程"
+          timeout 60 ssh -vv -o BatchMode=yes -o ConnectTimeout=15 \
             -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$known_hosts" \
-            -i "$key_file" -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" true 2>&1 | tail -n 30)
+            -i "$key_file" -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" true 2>&1 | tail -n 30
+          echo "### ssh 探测结束"
 
           # ---- 实际部署 ----
+          echo "### SFTP 上传"
           sftp -b "$batch_file" \
             -P "$DEPLOY_PORT" \
             -o BatchMode=yes \
@@ -103,36 +120,11 @@ jobs:
             "$DEPLOY_USER@$DEPLOY_HOST" 2>&1 | tee "$RUNNER_TEMP/sftp.log"
 
           status=${PIPESTATUS[0]}
+          echo "### sftp 退出码: $status"
 
-          # ---- 诊断汇总 ----
-          # 未登录 GitHub 看不到 Actions 日志，诊断结果统一写进 artifact
-          {
-            echo "### 环境"
-            echo
-            echo "- 目标: \`$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PORT:$DEPLOY_PATH\`"
-            echo "- TCP 连通性: $tcp_result"
-            echo "- 待上传文件数: $file_count"
-            echo "- 私钥: $key_bytes 字节，首行 \`$key_head\`"
-            echo "- runner 工具: $(command -v jq || echo 'NO_JQ') / $(command -v curl || echo 'NO_CURL') / $(command -v ssh || echo 'NO_SSH') / $(command -v sftp || echo 'NO_SFTP')"
-            echo "- ssh/sftp 版本: $(ssh -V 2>&1)"
-            echo "- sftp 退出码: $status"
-            echo
-            echo "### SSH 连接过程"
-            echo
-            echo '```'
-            echo "$ssh_diag"
-            echo '```'
-            echo
-            echo "### SFTP 输出"
-            echo
-            echo '```'
-            cat "$RUNNER_TEMP/sftp.log"
-            echo '```'
-          } > "$diag_file"
+          # 额外在 workspace 留一份，方便上传 artifact
+          cp "$diag_file" "$GITHUB_WORKSPACE/deploy-diagnostic.log" 2>/dev/null || true
 
-          cat "$diag_file" >> "$GITHUB_STEP_SUMMARY"
-
-          echo "sftp exit code: $status"
           exit $status
 
       # 诊断日志以 artifact 形式留存：Actions 日志对未登录访客不可见，
@@ -142,6 +134,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: deploy-diagnostic
-          path: ${{ runner.temp }}/deploy-diagnostic.log
+          path: |
+            ${{ runner.temp }}/deploy-diagnostic.log
+            ${{ github.workspace }}/deploy-diagnostic.log
           retention-days: 7
-          if-no-files-found: ignore
+          if-no-files-found: warn
