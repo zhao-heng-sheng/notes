@@ -77,6 +77,9 @@ jobs:
           echo "- 目标: $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PORT:$DEPLOY_PATH"
           echo "- runner 工具: jq=$(command -v jq || echo NO) curl=$(command -v curl || echo NO) ssh=$(command -v ssh || echo NO) sftp=$(command -v sftp || echo NO)"
 
+          # 立即在 workspace 留一份，后续任何一步失败都不会丢
+          cp "$diag_file" "$GITHUB_WORKSPACE/deploy-diagnostic.log" 2>/dev/null || true
+
           # GitHub secret 里私钥常被存成字面量 \n，这里还原成真实换行
           printf '%s' "$SSH_PRIVATE_KEY" | sed 's/\\n/\n/g' | tr -d '\r' > "$key_file"
           chmod 600 "$key_file"
@@ -101,10 +104,12 @@ jobs:
           echo "- TCP 结果: $tcp_result"
 
           # ---- 诊断：ssh 连接过程 ----
+          # 注意：Actions 默认 shell 带 -e，诊断命令失败必须显式吞掉，
+          # 否则会中断整个步骤（这正是之前 exit 255 的假象来源）
           echo "### SSH 连接过程"
           timeout 60 ssh -vv -o BatchMode=yes -o ConnectTimeout=15 \
             -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile="$known_hosts" \
-            -i "$key_file" -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" true 2>&1 | tail -n 30
+            -i "$key_file" -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" true 2>&1 | tail -n 30 || true
           echo "### ssh 探测结束"
 
           # ---- 实际部署 ----
@@ -117,12 +122,12 @@ jobs:
             -o ConnectTimeout=30 \
             -o ServerAliveInterval=15 \
             -i "$key_file" \
-            "$DEPLOY_USER@$DEPLOY_HOST" 2>&1 | tee "$RUNNER_TEMP/sftp.log"
+            "$DEPLOY_USER@$DEPLOY_HOST" 2>&1 | tee "$RUNNER_TEMP/sftp.log" || true
 
           status=${PIPESTATUS[0]}
           echo "### sftp 退出码: $status"
 
-          # 额外在 workspace 留一份，方便上传 artifact
+          # 同步 workspace 副本
           cp "$diag_file" "$GITHUB_WORKSPACE/deploy-diagnostic.log" 2>/dev/null || true
 
           exit $status
@@ -147,6 +152,11 @@ jobs:
         run: |
           set -uo pipefail
           cd "$GITHUB_WORKSPACE"
+
+          # 兜底：优先用 runner.temp 里的那份
+          if [ ! -f deploy-diagnostic.log ] && [ -f "$RUNNER_TEMP/deploy-diagnostic.log" ]; then
+            cp "$RUNNER_TEMP/deploy-diagnostic.log" deploy-diagnostic.log
+          fi
 
           if [ ! -f deploy-diagnostic.log ]; then
             echo "no diagnostic file, skip"
