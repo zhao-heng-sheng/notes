@@ -48,11 +48,23 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       # 读取 Pages 站点信息，产出 base_path / origin。
-      # 注意：这一步要求仓库已经开启 Pages（Settings → Pages → Source → GitHub Actions），
-      # 否则会报 "Get Pages site failed"。
+      #
+      # 默认情况：仓库已经开启 Pages（Settings → Pages → Source → GitHub Actions），
+      # 这一步直接读出站点信息。
+      #
+      # 如果还没开启，configure-pages 会报 "Get Pages site failed"。
+      # 两种解法：
+      #   1) 手动开一次（推荐）：Settings → Pages → Build and deployment →
+      #      Source 选 “GitHub Actions”，之后就不需要再管了；
+      #   2) 给仓库加一个 secret PAGES_PAT（PAT 需要 repo 或 pages:write 权限），
+      #      下面的 enablement 会自动把 Pages 开起来。
+      #      注意：GITHUB_TOKEN 没有开启 Pages 的权限，所以不能用它。
       - name: Setup Pages
         id: pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: ${{ secrets.PAGES_PAT != '' }}
+          token: ${{ secrets.PAGES_PAT != '' && secrets.PAGES_PAT || github.token }}
 
       - name: Build VuePress site
         env:
