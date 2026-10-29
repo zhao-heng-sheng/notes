@@ -7,5 +7,4 @@ export const zhSidebar = sidebar({
     "/工具/": "structure",
     "/千千结/": "structure",
     "/脚本/": "structure",
-    "/书影音游/": "structure",
 })
