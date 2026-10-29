@@ -1,49 +1,100 @@
-
-name: 部署文档
+name: 部署到 GitHub Pages
 
 on:
   push:
-    branches:
-      # 确保这是你正在使用的分支名称
-      - main
+    branches: [master]
+  # 手动触发，方便 Pages 刚开启后重跑一次
+  workflow_dispatch:
+
+# 全局只给最小权限：
+# build  job 只要读代码；
+# deploy job 需要额外 pages: write + id-token: write（单独加在 job 上）。
+permissions:
+  contents: read
+
+concurrency:
+  # 同一时刻只允许一个 Pages 部署；不取消进行中的部署，避免发布到一半被打断
+  group: pages
+  cancel-in-progress: false
 
 jobs:
-  deploy-gh-pages:
+  build:
+    name: 构建
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
+          # “最近更新时间” 等 git 历史信息需要完整提交记录
           fetch-depth: 0
-          # 如果你文档需要 Git 子模块，取消注释下一行
-          # submodules: true
 
-      - name: 安装 pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v6
         with:
-          # 不指定 version：由 package.json 的 packageManager 字段决定，
+          # 不指定 version：pnpm 版本统一由 package.json 的 packageManager 字段决定，
           # 同时指定两者会触发 "Multiple versions of pnpm specified"
           run_install: false
 
-      - name: 设置 Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
+          # 与 package.json 的 volta.node / .npmrc use-node-version 保持一致
           node-version: 24.19.0
           cache: pnpm
 
-      - name: 安装依赖
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 构建文档
+      # 读取 Pages 站点信息，产出 base_path / origin。
+      # 注意：这一步要求仓库已经开启 Pages（Settings → Pages → Source → GitHub Actions），
+      # 否则会报 "Get Pages site failed"。
+      - name: Setup Pages
+        id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Build VuePress site
         env:
           NODE_OPTIONS: --max_old_space_size=8192
-        run: |-
-          pnpm run docs:build
-          > src/.vuepress/dist/.nojekyll
+          # 项目型 Pages 站点路径形如 /notes（用户型站点为空串）。
+          # VuePress 的 base 需要以斜杠结尾，这里在脚本里补齐。
+          DOCS_BASE: ${{ steps.pages.outputs.base_path }}
+          # 站点主域名（不含路径），用于 canonical / og:url / RSS / sitemap
+          DOCS_HOSTNAME: ${{ steps.pages.outputs.origin }}
+        run: |
+          export DOCS_BASE="${DOCS_BASE%/}/"
+          echo "base     = $DOCS_BASE"
+          echo "hostname = $DOCS_HOSTNAME"
+          pnpm docs:build
 
-      - name: 部署文档
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: 准备产物
+        run: |
+          # 关闭 Jekyll 处理：仓库里如果有 _ 开头的目录/文件，没有 .nojekyll 会被忽略
+          touch src/.vuepress/dist/.nojekyll
+          # GitHub Pages 要求产物对 “Others” 可读，否则部署时报 deployment_perms_error
+          chmod -c -R +rX src/.vuepress/dist
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          # 这是文档部署到的分支名称
-          branch: gh-pages
-          folder: src/.vuepress/dist
+          # artifact 名必须是 github-pages（deploy-pages 的默认值）
+          path: src/.vuepress/dist
+
+  deploy:
+    name: 发布
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # 创建 Pages 部署需要 pages: write
+      pages: write
+      # 换取 OIDC JWT 需要 id-token: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

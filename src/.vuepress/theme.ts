@@ -3,12 +3,16 @@ import { zhNavbar } from "./navbar/index.js"
 import { zhSidebar } from "./sidebar/index.js"
 
 export default hopeTheme({
-    hostname: "http://note.zhaohs.cn/",
+    // 站点主域名（不含路径）。用于 canonical / og:url / RSS / sitemap。
+    // GitHub Pages 构建时由 DOCS_HOSTNAME 传入，本地构建仍指向自己的服务器。
+    hostname: process.env.DOCS_HOSTNAME || "http://note.zhaohs.cn/",
     author: {
         name: "赵恒盛",
         url: "https://mrhope.site",
     },
     logo: "/logo.svg",
+    // 主题会自动把开头的 "/" 换成 base，子路径部署下也能取到
+    favicon: "/favicon.ico",
 
     repo: "zhao-heng-sheng/notes",
     repoDisplay: true,

@@ -3,7 +3,9 @@ import { defineUserConfig } from "vuepress"
 import theme from "./theme.js"
 
 export default defineUserConfig({
-    base: "/",
+    // 站点根路径。GitHub Pages 部署在 /notes/ 子路径下时，
+    // 由构建环境变量 DOCS_BASE 传入；本地构建保持 "/"
+    base: process.env.DOCS_BASE || "/",
 
     // vuepress v2 rc 起 bundler 不再内置，需要显式声明
     bundler: viteBundler(),

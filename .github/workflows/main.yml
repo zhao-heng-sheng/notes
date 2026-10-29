@@ -51,7 +51,14 @@ jobs:
       # Docker 容器 action，容器型 action 正在被 GitHub 弃用，且旧版 OpenSSH
       # 客户端与服务端新版的算法协商容易出问题。
       # 改为直接用 runner 自带的 OpenSSH 客户端，行为可预期，报错也直接出现在日志里。
+      #
+      # continue-on-error: 当前服务器 118.195.232.109 公网端口不可达，
+      # 这条部署一定会失败，但不该把整个 workflow 拉红 ——
+      # 站点现在的发布通道是 GitHub Pages（见 deploy-docs.yml）。
+      # 服务器恢复后把 continue-on-error 去掉即可重新变严格。
       - name: Deploy to server
+        id: deploy
+        continue-on-error: true
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -142,7 +149,7 @@ jobs:
       # 诊断日志以 artifact 形式留存：Actions 日志对未登录访客不可见，
       # 而公开仓库的 artifact 可以直接通过 API 下载查看。
       - name: Upload deploy diagnostic
-        if: failure()
+        if: failure() || steps.deploy.outcome == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: deploy-diagnostic
@@ -155,7 +162,7 @@ jobs:
       # 同一份诊断再推到独立分支 ci-diagnostics：
       # 走 git 通道不受 GitHub API 限流影响，便于本地直接 fetch 查看。
       - name: Push deploy diagnostic to branch
-        if: failure()
+        if: failure() || steps.deploy.outcome == 'failure'
         run: |
           set -uo pipefail
           cd "$GITHUB_WORKSPACE"
