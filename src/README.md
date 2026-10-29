@@ -13,11 +13,13 @@ bgImage: https://zhaohs.cn/zb_users/theme/acgMora/style/img/thumb-1920-739436.pn
 
 sidebarSorter: ["readme", "order","date-desc", "title", "filename"]
 
-# projects:
-#     - icon: project
-#       name: 项目名称
-#       desc: 项目详细描述
-#       link: https://你的项目链接
+# 首页「项目」区块。link 填站点访问地址。
+projects:
+    - icon: article
+      name: 赵恒盛的笔记
+      desc: 基于 VuePress 2 与 theme-hope v2 搭建的技术笔记站，收录前端与后端技术笔记及开发工具记录。
+      link: https://zhao-heng-sheng.github.io/notes/
+      background: var(--vp-c-brand-1)
 
 #     - icon: link
 #       name: 链接名称
