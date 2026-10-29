@@ -1,0 +1,24 @@
+### 部署开始 2026-10-29T03:52:28+00:00
+- 目标: root@118.195.232.109:22:/www/wwwroot/notes
+- runner 工具: jq=/usr/bin/jq curl=/usr/bin/curl ssh=/usr/bin/ssh sftp=/usr/bin/sftp
+- 私钥: 419 字节，首行 -----BEGIN OPENSSH PRIVATE KEY-----
+- ssh 版本: OpenSSH_9.6p1 Ubuntu-3ubuntu13.20, OpenSSL 3.0.13 30 Jan 2024
+- 待上传文件数: 289
+### TCP 连通性探测 (118.195.232.109:22)
+- TCP 结果: TCP_FAIL
+- 站点 HTTP 探测: 
+### SSH 连接过程
+OpenSSH_9.6p1 Ubuntu-3ubuntu13.20, OpenSSL 3.0.13 30 Jan 2024
+debug1: Reading configuration data /etc/ssh/ssh_config
+debug1: /etc/ssh/ssh_config line 19: include /etc/ssh/ssh_config.d/*.conf matched no files
+debug1: /etc/ssh/ssh_config line 21: Applying options for *
+debug2: resolve_canonicalize: hostname 118.195.232.109 is address
+debug1: Connecting to 118.195.232.109 [118.195.232.109] port 22.
+debug2: fd 3 setting O_NONBLOCK
+debug1: connect to address 118.195.232.109 port 22: Connection timed out
+ssh: connect to host 118.195.232.109 port 22: Connection timed out
+### ssh 探测结束
+### SFTP 上传
+ssh: connect to host 118.195.232.109 port 22: Connection timed out
+Connection closed
+### sftp 退出码: 255
